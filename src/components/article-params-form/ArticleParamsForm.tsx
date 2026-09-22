@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   defaultArticleState,
   fontFamilyOptions,
@@ -28,30 +28,32 @@ export const ArticleParamsForm = ({
 }: ArticleParamsFormProps): React.JSX.Element => {
   const [isOpen, setIsOpen] = useState(false);
   const [formState, setForm] = useState(defaultArticleState);
-  const closeRef = useRef<HTMLElement>(null);
-  /*   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if(closeRef.current && !closeRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
+  const closeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleMouseDown = (e: MouseEvent): void => {
+      if (closeRef.current && !closeRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
       }
-    }
-    document.addEventListener('click', handleClick)
-    return () => {document.removeEventListener('click', handleClick)}
-  },[]) */
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    return (): void => document.removeEventListener('mousedown', handleMouseDown);
+  }, [isOpen]);
+
   return (
-    <>
-      <ArrowButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
-      <aside
-        ref={closeRef}
-        className={clsx(styles.container, { [styles.container_open]: isOpen })}
-      >
+    <div ref={closeRef}>
+      <ArrowButton isOpen={isOpen} onClick={() => setIsOpen((prev) => !prev)} />
+      <aside className={clsx(styles.container, { [styles.container_open]: isOpen })}>
         <form
           className={styles.form}
-          onSubmit={(e) => {
+          onSubmit={(e): void => {
             e.preventDefault();
             onChange(formState);
           }}
-          onReset={() => {
+          onReset={(): void => {
             onChange(defaultArticleState);
             setForm(defaultArticleState);
           }}
@@ -104,6 +106,6 @@ export const ArticleParamsForm = ({
           </div>
         </form>
       </aside>
-    </>
+    </div>
   );
 };
